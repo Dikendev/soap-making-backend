@@ -1,12 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { CheerioRepository } from './external/cheerio/cheerio.repository';
+import { SaponificationTable } from './external/cheerio/cheerio.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly webPageData: CheerioRepository) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  fetchWebData(): Promise<SaponificationTable> {
+    return this.webPageData.fetchData();
   }
 }
