@@ -2,19 +2,12 @@ import { Injectable } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 import { CheerioManager } from '../../../external/cheerio/cheerio.manager';
 import { TranslateRepository } from '../../repository/translate-repository';
+import {
+  SaponificationTable,
+  Content,
+} from './interfaces/scrape-data.interface';
 
 const URL = 'https://www.fromnaturewithlove.com/resources/sapon.asp';
-
-export interface SaponificationTable {
-  [title: string]: Content;
-}
-
-export interface Content {
-  SAP: string;
-  NAOH: number;
-  KOH: number;
-  INCIName: string;
-}
 
 @Injectable()
 export class ScrapeDataService {
@@ -63,6 +56,11 @@ export class ScrapeDataService {
     targetLanguage: string,
   ): Promise<SaponificationTable> {
     const englishResult = await this.fetchData();
+
+    if (fromLanguage === 'en' && targetLanguage === 'en') {
+      return englishResult;
+    }
+
     const keyTitle = Object.keys(englishResult);
 
     const data = await Promise.all(
@@ -119,16 +117,16 @@ export class ScrapeDataService {
           }
           break;
         case 1:
-          data.SAP = rowContent.length ? rowContent : null;
+          data.SAP = this.trimString(rowContent);
           break;
         case 2:
-          data.NAOH = this.parseValues(rowContent);
+          data.NAOH = this.parseStringToFloat(rowContent);
           break;
         case 3:
-          data.KOH = this.parseValues(rowContent);
+          data.KOH = this.parseStringToFloat(rowContent);
           break;
         case 4:
-          data.INCIName = rowContent.trim().length > 0 ? rowContent : null;
+          data.INCIName = this.trimString(rowContent);
           break;
       }
     });
@@ -145,7 +143,11 @@ export class ScrapeDataService {
     };
   }
 
-  parseValues(stringValue: string): number | null {
+  trimString(stringValue: string): string {
+    return stringValue.trim().length > 0 ? stringValue : null;
+  }
+
+  parseStringToFloat(stringValue: string): number | null {
     return parseFloat(stringValue) || null;
   }
 

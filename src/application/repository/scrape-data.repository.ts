@@ -1,4 +1,4 @@
-import { SaponificationTable } from '../ports/services/scrape-data.service';
+import { SaponificationTable } from '../ports/services/interfaces/scrape-data.interface';
 
 export abstract class ScrapeDataRepository {
   abstract fetchData: () => Promise<any>;
