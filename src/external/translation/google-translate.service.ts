@@ -4,9 +4,7 @@ import { Injectable } from '@nestjs/common';
 const translate = require('@iamtraction/google-translate');
 
 @Injectable()
-export class TranslateService {
-  constructor() {}
-
+export class GoogleTranslateService {
   async translate(
     text: string,
     fromLanguage: string,
