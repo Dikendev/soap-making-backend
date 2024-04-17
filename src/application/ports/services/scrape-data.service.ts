@@ -10,7 +10,7 @@ export interface SaponificationTable {
 }
 
 export interface Content {
-  SAP: string[];
+  SAP: string;
   NAOH: number;
   KOH: number;
   INCIName: string;
@@ -65,17 +65,37 @@ export class ScrapeDataService {
     const englishResult = await this.fetchData();
     const keyTitle = Object.keys(englishResult);
 
-    const translatedKeys = await Promise.all(
-      keyTitle.map((key) =>
-        this.translateRepository.translate(key, fromLanguage, targetLanguage),
-      ),
+    const data = await Promise.all(
+      keyTitle.map(async (key) => {
+        const inciName = englishResult[key].INCIName;
+        let inciNameTranslated: string = null;
+        if (inciName) {
+          inciNameTranslated = await this.translateRepository.translate(
+            inciName,
+            fromLanguage,
+            targetLanguage,
+          );
+        }
+
+        const translatedKeys = await this.translateRepository.translate(
+          key,
+          fromLanguage,
+          targetLanguage,
+        );
+
+        return { translatedKeys, inciNameTranslated };
+      }),
     );
 
     const translatedResult: SaponificationTable = {};
     for (let i = 0; i < keyTitle.length; i++) {
-      const promise = translatedKeys[i];
+      const promise = data[i].translatedKeys;
       const titleKey = keyTitle[i];
-      translatedResult[promise] = englishResult[titleKey];
+      const result = englishResult[titleKey];
+      translatedResult[promise] = {
+        ...result,
+        INCIName: data[i].inciNameTranslated,
+      };
     }
 
     return translatedResult;
@@ -99,10 +119,7 @@ export class ScrapeDataService {
           }
           break;
         case 1:
-          const rowArray: string[] = rowContent
-            .replaceAll(/\s/g, '')
-            .split('-');
-          data.SAP = rowArray.length > 0 ? rowArray : null;
+          data.SAP = rowContent.length ? rowContent : null;
           break;
         case 2:
           data.NAOH = this.parseValues(rowContent);
