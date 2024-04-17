@@ -1,4 +1,4 @@
-import { MeasurementSoapSolid } from './recipes';
+import { MeasurementSoapSolid } from './recipe';
 
 describe('MeasurementSoapSolid', () => {
   let measurementSoapSolid: MeasurementSoapSolid;
