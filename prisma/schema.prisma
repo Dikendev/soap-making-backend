@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Oil {
+  id       Int        @id @default(autoincrement())
+  SAP      Int
+  NAOH     Float
+  KOH      Float
+  names    Name[]
+  INCIName INCIName[]
+}
+
+model Name {
+  id       Int    @id @default(autoincrement())
+  oilId    Int
+  language String
+  name     String
+  oil      Oil    @relation(fields: [oilId], references: [id])
+}
+
+model INCIName {
+  id       Int    @id @default(autoincrement())
+  oilId    Int
+  language String
+  name     String
+  Oil      Oil    @relation(fields: [oilId], references: [id])
+}
