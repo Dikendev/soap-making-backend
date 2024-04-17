@@ -1,5 +1,16 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get } from '@nestjs/common';
 import { ScrapeDataRepository } from '../../repository/scrape-data.repository';
+import { IsNotEmpty, IsString } from 'class-validator';
+
+export class ScrapeDataLanguageDto {
+  @IsNotEmpty()
+  @IsString()
+  fromLanguage: string;
+
+  @IsNotEmpty()
+  @IsString()
+  targetLanguage: string;
+}
 
 @Controller('scrape-data')
 export class ScrapeDataController {
@@ -8,5 +19,15 @@ export class ScrapeDataController {
   @Get()
   async fetchData(): Promise<any> {
     return this.scrapeRepository.fetchData();
+  }
+
+  @Get('translate')
+  async translateScrapedData(
+    @Body() scrapeDataLanguageDto: ScrapeDataLanguageDto,
+  ) {
+    return this.scrapeRepository.translateScrapedData(
+      scrapeDataLanguageDto.fromLanguage,
+      scrapeDataLanguageDto.targetLanguage,
+    );
   }
 }

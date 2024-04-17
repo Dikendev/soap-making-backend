@@ -41,7 +41,7 @@ export class ScrapeDataService {
       tBody.each((index, row) => {
         if (index === 0) {
           const content = $(row).find('tr');
-          content.find('tr').each((index, row) => {
+          content.find('tr').each((_, row) => {
             const td = $(row).find('td');
 
             const { keyTitle, data } = this.resolveData(td, $, result);
@@ -52,19 +52,22 @@ export class ScrapeDataService {
         }
       });
 
-      this.translateScrapedData(result);
       return result;
     } catch (error) {
       console.error(error);
     }
   }
 
-  async translateScrapedData(result: SaponificationTable) {
-    const keyTitle = Object.keys(result);
+  async translateScrapedData(
+    fromLanguage: string,
+    targetLanguage: string,
+  ): Promise<SaponificationTable> {
+    const englishResult = await this.fetchData();
+    const keyTitle = Object.keys(englishResult);
 
     const translatedKeys = await Promise.all(
       keyTitle.map((key) =>
-        this.translateRepository.translate(key, 'en', 'pt'),
+        this.translateRepository.translate(key, fromLanguage, targetLanguage),
       ),
     );
 
@@ -72,8 +75,10 @@ export class ScrapeDataService {
     for (let i = 0; i < keyTitle.length; i++) {
       const promise = translatedKeys[i];
       const titleKey = keyTitle[i];
-      translatedResult[promise] = result[titleKey];
+      translatedResult[promise] = englishResult[titleKey];
     }
+
+    return translatedResult;
   }
 
   resolveData(
