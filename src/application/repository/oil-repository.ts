@@ -1,4 +1,8 @@
+import { OilResponse, OilsDto } from '../ports/services/oil/model';
+
 export abstract class OilRepository {
-  abstract createOil: (oil: any) => Promise<any>;
-  abstract getOils: () => Promise<any>;
+  abstract registerOil: (oil: any) => Promise<OilResponse>;
+  abstract findOils: () => Promise<OilResponse[]>;
+  abstract registerManyOils: (oils: OilsDto) => Promise<string>;
+  abstract deleteAllOils: () => Promise<string>;
 }
