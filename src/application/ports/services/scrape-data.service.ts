@@ -5,12 +5,15 @@ import { TranslateRepository } from '../../repository/translate-repository';
 import {
   SaponificationTable,
   Content,
+  SaponificationTableArray,
+  INCIName,
 } from './interfaces/scrape-data.interface';
+import { ScrapeDataRepository } from '../../repository/scrape-data.repository';
 
 const URL = 'https://www.fromnaturewithlove.com/resources/sapon.asp';
 
 @Injectable()
-export class ScrapeDataService {
+export class ScrapeDataService implements ScrapeDataRepository {
   constructor(private readonly translateRepository: TranslateRepository) {}
 
   async fetchData(): Promise<SaponificationTable> {
@@ -54,12 +57,14 @@ export class ScrapeDataService {
   async translateScrapedData(
     fromLanguage: string,
     targetLanguage: string,
-  ): Promise<SaponificationTable> {
-    const englishResult = await this.fetchData();
+  ): Promise<SaponificationTableArray[] | SaponificationTable> {
+    let isTranslateValues: boolean = true;
 
     if (fromLanguage === 'en' && targetLanguage === 'en') {
-      return englishResult;
+      isTranslateValues = false;
     }
+
+    const englishResult = await this.fetchData();
 
     const keyTitle = Object.keys(englishResult);
 
@@ -67,33 +72,56 @@ export class ScrapeDataService {
       keyTitle.map(async (key) => {
         const inciName = englishResult[key].INCIName;
         let inciNameTranslated: string = null;
-        if (inciName) {
+        let translatedKeys: string = key;
+
+        if (inciName && isTranslateValues) {
           inciNameTranslated = await this.translateRepository.translate(
             inciName,
             fromLanguage,
             targetLanguage,
           );
-        }
 
-        const translatedKeys = await this.translateRepository.translate(
-          key,
-          fromLanguage,
-          targetLanguage,
-        );
+          translatedKeys = await this.translateRepository.translate(
+            key,
+            fromLanguage,
+            targetLanguage,
+          );
+        }
 
         return { translatedKeys, inciNameTranslated };
       }),
     );
 
-    const translatedResult: SaponificationTable = {};
+    const translatedResult: SaponificationTableArray[] = [];
     for (let i = 0; i < keyTitle.length; i++) {
-      const promise = data[i].translatedKeys;
+      const name = data[i].translatedKeys;
+      const inciName = data[i].inciNameTranslated;
       const titleKey = keyTitle[i];
       const result = englishResult[titleKey];
-      translatedResult[promise] = {
+
+      let INCIName: INCIName[] = [];
+
+      if (inciName) {
+        INCIName = [
+          {
+            language: targetLanguage,
+            name: inciName,
+          },
+        ];
+      }
+
+      const names = [
+        {
+          language: targetLanguage,
+          name,
+        },
+      ];
+
+      translatedResult.push({
         ...result,
-        INCIName: data[i].inciNameTranslated,
-      };
+        names,
+        INCIName,
+      });
     }
 
     return translatedResult;
