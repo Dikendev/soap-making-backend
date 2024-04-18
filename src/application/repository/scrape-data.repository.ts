@@ -1,4 +1,7 @@
-import { SaponificationTable } from '../ports/services/interfaces/scrape-data.interface';
+import {
+  SaponificationTable,
+  SaponificationTableArray,
+} from '../ports/services/interfaces/scrape-data.interface';
 
 export abstract class ScrapeDataRepository {
   abstract fetchData: () => Promise<any>;
@@ -6,5 +9,5 @@ export abstract class ScrapeDataRepository {
   abstract translateScrapedData: (
     fromLanguage: string,
     targetLanguage: string,
-  ) => Promise<SaponificationTable>;
+  ) => Promise<SaponificationTableArray[] | SaponificationTable>;
 }
