@@ -8,12 +8,15 @@ datasource db {
 }
 
 model Oil {
-  id       Int        @id @default(autoincrement())
-  SAP      Int
-  NAOH     Float
-  KOH      Float
-  names    Name[]
-  INCIName INCIName[]
+  id        Int        @id @default(autoincrement())
+  SAP       String
+  NAOH      Float
+  KOH       Float
+  names     Name[]
+  INCIName  INCIName[]
+  updatedBy String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Name {
@@ -21,7 +24,7 @@ model Name {
   oilId    Int
   language String
   name     String
-  oil      Oil    @relation(fields: [oilId], references: [id])
+  oil      Oil    @relation(fields: [oilId], references: [id], onDelete: Cascade)
 }
 
 model INCIName {
@@ -29,5 +32,5 @@ model INCIName {
   oilId    Int
   language String
   name     String
-  Oil      Oil    @relation(fields: [oilId], references: [id])
+  oil      Oil    @relation(fields: [oilId], references: [id], onDelete: Cascade)
 }
