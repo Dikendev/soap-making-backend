@@ -8,18 +8,19 @@ datasource db {
 }
 
 model Oil {
-  id        Int        @id @default(autoincrement())
-  SAP       String
-  NAOH      Float
-  KOH       Float
-  names     Name[]
-  INCIName  INCIName[]
-  updatedBy String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  SAP          String
+  NAOH         Float
+  KOH          Float
+  translations translation[]
+  INCIName     INCIName[]
+  updatedBy    String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
-model Name {
+model translation {
   id       Int    @id @default(autoincrement())
   oilId    Int
   language String
