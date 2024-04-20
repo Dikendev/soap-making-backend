@@ -6,9 +6,11 @@ import { OilModule } from './application/infrastructure/oil.module';
 import { ScrapeDataModule } from './application/infrastructure/scrape-data.module';
 import { GoogleTranslateModule } from './external/translation/google-translate.module';
 import { TranslateModule } from './application/infrastructure/translate.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     TranslateModule,
     PrismaModule,
     OilModule,
