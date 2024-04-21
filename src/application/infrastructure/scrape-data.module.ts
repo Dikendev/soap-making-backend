@@ -4,10 +4,9 @@ import { ScrapeDataService } from '../ports/services/scrape-data.service';
 import { ScrapeDataRepository } from '../repository/scrape-data.repository';
 import { ScrapeDataController } from '../ports/controllers/scrape-data.controller';
 import { TranslateModule } from './translate.module';
-import { OilModule } from './oil.module';
 
 @Module({
-  imports: [PrismaModule, TranslateModule, OilModule],
+  imports: [PrismaModule, TranslateModule],
   providers: [
     ScrapeDataService,
     { provide: ScrapeDataRepository, useClass: ScrapeDataService },
