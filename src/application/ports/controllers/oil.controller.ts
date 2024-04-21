@@ -1,9 +1,11 @@
 import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
+import { FindOilQuery, OilRepository } from '../../repository/oil-repository';
 import {
-  FindOilByNameQuery,
-  OilRepository,
-} from '../../repository/oil-repository';
-import { CreateOilDto, OilResponse, OilsDto } from '../services/oil/model';
+  CreateOilDto,
+  OilModelResponse,
+  OilResponse,
+  OilsDto,
+} from '../services/oil/model';
 import { ScrapeDataLanguageDto } from './scrape-data.controller';
 import { ScrapeDataRepository } from '../../repository/scrape-data.repository';
 
@@ -21,9 +23,9 @@ export class OilController {
 
   @Get('find-by-name')
   async findOilByName(
-    @Query() findOilByNameQuery: FindOilByNameQuery,
-  ): Promise<OilResponse> {
-    return this.oilRepository.findOilByName(findOilByNameQuery);
+    @Query() findOilQuery: FindOilQuery,
+  ): Promise<OilModelResponse> {
+    return this.oilRepository.findOilByName(findOilQuery);
   }
 
   @Post('register')
