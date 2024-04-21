@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 import { CheerioManager } from '../../../external/cheerio/cheerio.manager';
 import { TranslateRepository } from '../../repository/translate-repository';
 import {
   SaponificationTable,
   Content,
-  SaponificationTableArray,
-  INCIName,
 } from './interfaces/scrape-data.interface';
 import { ScrapeDataRepository } from '../../repository/scrape-data.repository';
+import { Name, OilResponse } from './oil/model';
 
 const URL = 'https://www.fromnaturewithlove.com/resources/sapon.asp';
+export const ENGLISH = 'en';
 
 @Injectable()
 export class ScrapeDataService implements ScrapeDataRepository {
@@ -54,77 +54,79 @@ export class ScrapeDataService implements ScrapeDataRepository {
     }
   }
 
-  async translateScrapedData(
-    fromLanguage: string,
-    targetLanguage: string,
-  ): Promise<SaponificationTableArray[] | SaponificationTable> {
-    let isTranslateValues: boolean = true;
+  async translateScrapedData(targetLanguage: string): Promise<OilResponse[]> {
+    try {
+      let isTranslateValues: boolean = true;
 
-    if (fromLanguage === 'en' && targetLanguage === 'en') {
-      isTranslateValues = false;
-    }
-
-    const englishResult = await this.fetchData();
-
-    const keyTitle = Object.keys(englishResult);
-
-    const data = await Promise.all(
-      keyTitle.map(async (key) => {
-        const inciName = englishResult[key].INCIName;
-        let inciNameTranslated: string = null;
-        let translatedKeys: string = key;
-
-        if (inciName && isTranslateValues) {
-          inciNameTranslated = await this.translateRepository.translate(
-            inciName,
-            fromLanguage,
-            targetLanguage,
-          );
-
-          translatedKeys = await this.translateRepository.translate(
-            key,
-            fromLanguage,
-            targetLanguage,
-          );
-        }
-
-        return { translatedKeys, inciNameTranslated };
-      }),
-    );
-
-    const translatedResult: SaponificationTableArray[] = [];
-    for (let i = 0; i < keyTitle.length; i++) {
-      const name = data[i].translatedKeys;
-      const inciName = data[i].inciNameTranslated;
-      const titleKey = keyTitle[i];
-      const result = englishResult[titleKey];
-
-      let INCIName: INCIName[] = [];
-
-      if (inciName) {
-        INCIName = [
-          {
-            language: targetLanguage,
-            name: inciName,
-          },
-        ];
+      //TODO: Add validation for targetLanguage
+      // If the target language is English, don't need to translate the values
+      if (targetLanguage === ENGLISH) {
+        isTranslateValues = false;
       }
 
-      const names = [
-        {
-          language: targetLanguage,
-          name,
-        },
-      ];
+      const englishResult = await this.fetchData();
 
-      translatedResult.push({
-        ...result,
-        names,
-        INCIName,
-      });
+      const keyTitle = Object.keys(englishResult);
+
+      const data = await Promise.all(
+        keyTitle.map(async (key) => {
+          const inciName = englishResult[key].INCIName;
+          let inciNameTranslated: string = inciName;
+          let translatedKeys: string = key;
+
+          if (inciName && isTranslateValues) {
+            inciNameTranslated = await this.translateRepository.translate(
+              inciName,
+              targetLanguage,
+            );
+
+            translatedKeys = await this.translateRepository.translate(
+              key,
+              targetLanguage,
+            );
+          }
+
+          return { translatedKeys, inciNameTranslated };
+        }),
+      );
+
+      const translatedResult: OilResponse[] = [];
+      for (let i = 0; i < keyTitle.length; i++) {
+        const name = data[i].translatedKeys;
+        const inciName = data[i].inciNameTranslated;
+        const titleKey = keyTitle[i];
+        const result = englishResult[titleKey];
+
+        let INCIName: Name[] = [];
+
+        if (inciName) {
+          INCIName = [
+            {
+              language: targetLanguage,
+              name: inciName,
+            },
+          ];
+        }
+
+        const translations = [
+          {
+            language: targetLanguage,
+            name,
+          },
+        ];
+
+        translatedResult.push({
+          ...result,
+          name: titleKey,
+          translations,
+          INCIName,
+        });
+      }
+
+      return translatedResult;
+    } catch (error) {
+      throw new HttpException(error.message, error.code);
     }
-
-    return translatedResult;
   }
 
   resolveData(
@@ -162,6 +164,14 @@ export class ScrapeDataService implements ScrapeDataRepository {
     return { keyTitle, data };
   }
 
+  trimString(stringValue: string): string {
+    return stringValue.trim().length > 0 ? stringValue : null;
+  }
+
+  parseStringToFloat(stringValue: string): number | null {
+    return parseFloat(stringValue) || null;
+  }
+
   bundleEmptyData(): Content {
     return {
       SAP: null,
@@ -169,14 +179,6 @@ export class ScrapeDataService implements ScrapeDataRepository {
       KOH: null,
       INCIName: null,
     };
-  }
-
-  trimString(stringValue: string): string {
-    return stringValue.trim().length > 0 ? stringValue : null;
-  }
-
-  parseStringToFloat(stringValue: string): number | null {
-    return parseFloat(stringValue) || null;
   }
 
   setKeyTitle(
