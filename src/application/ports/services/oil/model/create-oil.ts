@@ -1,11 +1,12 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
-export interface NameInput {
-  language: string;
-  name: string;
-}
-
-export interface INCINameInput {
+export interface Name {
   language: string;
   name: string;
 }
@@ -14,14 +15,19 @@ export interface OilModel {
   SAP: string;
   NAOH: number;
   KOH: number;
-  names?: NameInput[];
-  INCIName?: INCINameInput[];
+  name: string;
+  translations?: Name[];
+  INCIName?: Name[];
 }
 
 export class CreateOilDto implements OilModel {
   @IsNotEmpty()
   @IsString()
   SAP: string;
+
+  @IsNotEmpty()
+  @IsString()
+  name: string;
 
   @IsNotEmpty()
   @IsNumber()
@@ -32,10 +38,12 @@ export class CreateOilDto implements OilModel {
   KOH: number;
 
   @IsOptional()
-  names?: NameInput[];
+  @ValidateNested({ each: true })
+  translations?: Name[];
 
   @IsOptional()
-  INCIName?: NameInput[];
+  @ValidateNested({ each: true })
+  INCIName?: Name[];
 }
 
 export type OilsDto = CreateOilDto[];
