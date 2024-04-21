@@ -5,10 +5,16 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../../external/prisma/prisma.service';
 import {
-  FindOilByNameQuery,
+  FindOilQuery,
   OilRepository,
 } from '../../../repository/oil-repository';
-import { CreateOilDto, Name, OilResponse, OilsDto } from './model';
+import {
+  CreateOilDto,
+  Name,
+  OilModelResponse,
+  OilResponse,
+  OilsDto,
+} from './model';
 import { ScrapeDataRepository } from '../../../repository/scrape-data.repository';
 import { ScrapeDataLanguageDto } from '../../controllers/scrape-data.controller';
 
@@ -62,30 +68,71 @@ export class OilPrismaService implements OilRepository {
     }
   }
 
-  async findOilByName(
-    findOilByNameQuery: FindOilByNameQuery,
-  ): Promise<OilResponse> {
-    const { name } = findOilByNameQuery;
+  async findOilByName(findOilQuery: FindOilQuery): Promise<OilModelResponse> {
+    const { name, language } = findOilQuery;
+    console.log('findOilQuery', findOilQuery);
     try {
       const uniqueOilResponse = await this.prismaService.oil.findUnique({
         where: { name: name },
-        include: { translations: true, INCIName: true },
+        select: {
+          id: true,
+          name: true,
+          SAP: true,
+          NAOH: true,
+          KOH: true,
+          translations: { where: { language: { equals: language } } },
+          INCIName: { where: { language: { equals: language } } },
+        },
       });
 
       if (!uniqueOilResponse) {
-        const translationOilName = await this.prismaService.oil.findFirst({
-          where: { translations: { some: { name: { contains: name } } } },
-          include: { translations: true, INCIName: true },
-        });
+        const translationOilName =
+          await this.prismaService.translation.findFirst({
+            where: { name: name },
+            include: {
+              oil: {
+                select: {
+                  SAP: true,
+                  NAOH: true,
+                  KOH: true,
+                  INCIName: { where: { language: { equals: language } } },
+                },
+              },
+            },
+          });
+
+        console.log('translationOilName', translationOilName);
 
         if (!translationOilName) {
           throw new NotFoundException('Oil not found');
         }
 
-        return new OilResponse(translationOilName);
+        console.log('translationOilName', translationOilName);
+
+        const oilModelResponse: OilModelResponse = {
+          id: translationOilName.id,
+          name: translationOilName.name,
+          SAP: translationOilName.oil.SAP,
+          NAOH: translationOilName.oil.NAOH,
+          KOH: translationOilName.oil.KOH,
+          INCIName: translationOilName.oil.INCIName[0].name,
+          language: translationOilName.language,
+        };
+        return oilModelResponse;
       }
 
-      return new OilResponse(uniqueOilResponse);
+      const oilModelResponse: OilModelResponse = {
+        id: uniqueOilResponse.id,
+        name: uniqueOilResponse.name,
+        SAP: uniqueOilResponse.SAP,
+        NAOH: uniqueOilResponse.NAOH,
+        KOH: uniqueOilResponse.KOH,
+        INCIName: uniqueOilResponse.INCIName[0].name,
+        language: uniqueOilResponse.translations[0].language,
+      };
+      console.log('uniqueOilResponse', uniqueOilResponse);
+
+      return oilModelResponse;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -143,7 +190,7 @@ export class OilPrismaService implements OilRepository {
         };
 
         const oilTranslated = await this.registerNewTranslationByName(
-          { name: oil.name },
+          oil.name,
           dataToTranslate,
         );
 
@@ -158,12 +205,12 @@ export class OilPrismaService implements OilRepository {
   }
 
   async registerNewTranslationByName(
-    findOilByNameQuery: FindOilByNameQuery,
+    name: string,
     dataToUpdate: DataToUpdate,
   ): Promise<OilResponse> {
     try {
       const foundOil = await this.prismaService.oil.findUnique({
-        where: { name: findOilByNameQuery.name },
+        where: { name: name },
         include: { translations: true, INCIName: true },
       });
 
@@ -192,19 +239,11 @@ export class OilPrismaService implements OilRepository {
   dataToUpdate(oilResponse: OilResponse, dataToUpdate: DataToUpdate): any {
     const dataToUpdateResponse = {};
 
-    if (!dataToUpdate.INCIName.language || !dataToUpdate.INCIName.name) {
-      return dataToUpdateResponse;
-    }
-
     const alreadyExistTranslations = oilResponse.translations.findIndex(
       (translation) => {
         return dataToUpdate.translations.language === translation.language;
       },
     );
-
-    const alreadyExistINCIName = oilResponse.INCIName.findIndex((INCIName) => {
-      return dataToUpdate.INCIName.language === INCIName.language;
-    });
 
     if (alreadyExistTranslations === -1) {
       dataToUpdateResponse['translations'] = {
@@ -214,6 +253,14 @@ export class OilPrismaService implements OilRepository {
         },
       };
     }
+
+    if (!dataToUpdate.INCIName.language || !dataToUpdate.INCIName.name) {
+      return dataToUpdateResponse;
+    }
+
+    const alreadyExistINCIName = oilResponse.INCIName.findIndex((INCIName) => {
+      return dataToUpdate.INCIName.language === INCIName.language;
+    });
 
     if (alreadyExistINCIName === -1) {
       dataToUpdateResponse['INCIName'] = {
