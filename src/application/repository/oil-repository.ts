@@ -11,18 +11,18 @@ export class FindOilByNameQuery {
 }
 
 export abstract class OilRepository {
-  abstract registerOil: (oil: any) => Promise<OilResponse>;
-  abstract findOils: () => Promise<OilResponse[]>;
-  abstract findOilByName: (
+  abstract registerOil(oil: any): Promise<OilResponse>;
+  abstract findOils(): Promise<OilResponse[]>;
+  abstract findOilByName(
     findOilByNameQuery: FindOilByNameQuery,
-  ) => Promise<OilResponse>;
-  abstract registerManyOils: (oils: OilsDto) => Promise<string>;
-  abstract deleteAllOils: () => Promise<string>;
-  abstract registerNewTranslationByName: (
+  ): Promise<OilResponse>;
+  abstract registerManyOils(oils: OilsDto): Promise<string>;
+  abstract deleteAllOils(): Promise<string>;
+  abstract registerNewTranslationByName(
     findOilByNameQuery: FindOilByNameQuery,
     dataToUpdate: DataToUpdate,
-  ) => Promise<OilResponse>;
-  abstract registerNewTranslationToExistingOil: (
+  ): Promise<OilResponse>;
+  abstract registerNewTranslationToExistingOil(
     scrapeDataLanguageDto: ScrapeDataLanguageDto,
-  ) => Promise<string>;
+  ): Promise<string>;
 }
