@@ -1,13 +1,9 @@
-import {
-  SaponificationTable,
-  SaponificationTableArray,
-} from '../ports/services/interfaces/scrape-data.interface';
+import { OilResponse } from '../ports/services/oil/model';
 
 export abstract class ScrapeDataRepository {
   abstract fetchData: () => Promise<any>;
 
   abstract translateScrapedData: (
-    fromLanguage: string,
     targetLanguage: string,
-  ) => Promise<SaponificationTableArray[] | SaponificationTable>;
+  ) => Promise<OilResponse[]>;
 }
