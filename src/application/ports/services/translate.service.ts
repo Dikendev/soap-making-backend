@@ -8,15 +8,7 @@ export class TranslateService implements TranslateRepository {
     private readonly googleTranslateService: GoogleTranslateService,
   ) {}
 
-  async translate(
-    text: string,
-    fromLanguage: string,
-    targetLanguage: string,
-  ): Promise<string> {
-    return this.googleTranslateService.translate(
-      text,
-      fromLanguage,
-      targetLanguage,
-    );
+  async translate(text: string, targetLanguage: string): Promise<string> {
+    return this.googleTranslateService.translate(text, targetLanguage);
   }
 }
