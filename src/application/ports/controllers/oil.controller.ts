@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { FindOilQuery, OilRepository } from '../../repository/oil-repository';
 import {
   CreateOilDto,
-  OilModelResponse,
+  OilByNameResponse,
   OilResponse,
   OilsDto,
 } from '../services/oil/model';
@@ -24,7 +24,7 @@ export class OilController {
   @Get('find-by-name')
   async findOilByName(
     @Query() findOilQuery: FindOilQuery,
-  ): Promise<OilModelResponse> {
+  ): Promise<OilByNameResponse> {
     return this.oilRepository.findOilByName(findOilQuery);
   }
 
