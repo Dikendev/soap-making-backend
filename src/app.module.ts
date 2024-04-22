@@ -7,6 +7,7 @@ import { ScrapeDataModule } from './application/infrastructure/scrape-data.modul
 import { GoogleTranslateModule } from './external/translation/google-translate.module';
 import { TranslateModule } from './application/infrastructure/translate.module';
 import { ConfigModule } from '@nestjs/config';
+import { RecipeModule } from './application/core/recipe.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ConfigModule } from '@nestjs/config';
     OilModule,
     ScrapeDataModule,
     GoogleTranslateModule,
+    RecipeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
