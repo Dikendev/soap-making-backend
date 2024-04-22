@@ -20,6 +20,16 @@ export interface OilModel {
   INCIName?: Name[];
 }
 
+export interface OilByNameResponse {
+  id: number;
+  name: string;
+  SAP: string;
+  NAOH: number;
+  KOH: number;
+  INCIName?: string;
+  language: string;
+}
+
 export class CreateOilDto implements OilModel {
   @IsNotEmpty()
   @IsString()
