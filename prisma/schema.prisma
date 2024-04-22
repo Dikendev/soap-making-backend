@@ -18,6 +18,8 @@ model Oil {
   updatedBy    String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  recipe       recipe?       @relation(fields: [recipeId], references: [id])
+  recipeId     Int?
 }
 
 model translation {
@@ -34,4 +36,17 @@ model INCIName {
   language String
   name     String
   oil      Oil    @relation(fields: [oilId], references: [id], onDelete: Cascade)
+}
+
+model recipe {
+  id           Int      @id @default(autoincrement())
+  name         String
+  lye          Float
+  liquidAmount Float
+  updatedBy    String?
+  oils         Oil[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("recipes")
 }
