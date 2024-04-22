@@ -11,7 +11,7 @@ import {
 import {
   CreateOilDto,
   Name,
-  OilModelResponse,
+  OilByNameResponse,
   OilResponse,
   OilsDto,
 } from './model';
@@ -68,7 +68,7 @@ export class OilPrismaService implements OilRepository {
     }
   }
 
-  async findOilByName(findOilQuery: FindOilQuery): Promise<OilModelResponse> {
+  async findOilByName(findOilQuery: FindOilQuery): Promise<OilByNameResponse> {
     const { name, language } = findOilQuery;
     console.log('findOilQuery', findOilQuery);
     try {
@@ -109,7 +109,7 @@ export class OilPrismaService implements OilRepository {
 
         console.log('translationOilName', translationOilName);
 
-        const oilModelResponse: OilModelResponse = {
+        const oilModelResponse: OilByNameResponse = {
           id: translationOilName.id,
           name: translationOilName.name,
           SAP: translationOilName.oil.SAP,
@@ -121,7 +121,7 @@ export class OilPrismaService implements OilRepository {
         return oilModelResponse;
       }
 
-      const oilModelResponse: OilModelResponse = {
+      const oilModelResponse: OilByNameResponse = {
         id: uniqueOilResponse.id,
         name: uniqueOilResponse.name,
         SAP: uniqueOilResponse.SAP,
