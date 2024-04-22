@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, Length, MinLength } from 'class-validator';
 import {
-  OilModelResponse,
+  OilByNameResponse,
   OilResponse,
   OilsDto,
 } from '../ports/services/oil/model';
@@ -22,7 +22,9 @@ export class FindOilQuery {
 export abstract class OilRepository {
   abstract registerOil(oil: any): Promise<OilResponse>;
   abstract findOils(): Promise<OilResponse[]>;
-  abstract findOilByName(findOilQuery: FindOilQuery): Promise<OilModelResponse>;
+  abstract findOilByName(
+    findOilQuery: FindOilQuery,
+  ): Promise<OilByNameResponse>;
   abstract registerManyOils(oils: OilsDto): Promise<string>;
   abstract deleteAllOils(): Promise<string>;
   abstract registerNewTranslationByName(
